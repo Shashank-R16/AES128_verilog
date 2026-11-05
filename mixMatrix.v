@@ -1,5 +1,5 @@
 // ============================================================================
-// Module: mixMatrix  (Verilog-2001 conversion of mixMatrix.sv)
+// Module: mixMatrix  
 // Applies MixColumns to all four 32-bit words (columns) of the 128-bit state.
 // ============================================================================
 module mixMatrix (
