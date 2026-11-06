@@ -14,14 +14,27 @@ module keyExpansion (
   `include "aes128Pkg.vh"
 
   // ------------------------------------------------------------------
-  // Constants: round constants RCON[0..9]
+  // Constants: round constants RCON[0..9], as a combinational case-based
+  // lookup function (synthesizable ROM; replaces a memory + initial block)
   // ------------------------------------------------------------------
-  reg [7:0] RCON [0:9];
-  initial begin
-    RCON[0] = 8'h01; RCON[1] = 8'h02; RCON[2] = 8'h04; RCON[3] = 8'h08;
-    RCON[4] = 8'h10; RCON[5] = 8'h20; RCON[6] = 8'h40; RCON[7] = 8'h80;
-    RCON[8] = 8'h1B; RCON[9] = 8'h36;
-  end
+  function [7:0] rcon;
+    input [3:0] idx;
+    begin
+      case (idx)
+        4'd0: rcon = 8'h01;
+        4'd1: rcon = 8'h02;
+        4'd2: rcon = 8'h04;
+        4'd3: rcon = 8'h08;
+        4'd4: rcon = 8'h10;
+        4'd5: rcon = 8'h20;
+        4'd6: rcon = 8'h40;
+        4'd7: rcon = 8'h80;
+        4'd8: rcon = 8'h1B;
+        4'd9: rcon = 8'h36;
+        default: rcon = 8'h00;
+      endcase
+    end
+  endfunction
 
   // ------------------------------------------------------------------
   // Functions
@@ -85,7 +98,7 @@ module keyExpansion (
   generate for (i=0; i<10; i=i+1) begin : gen_roundKeysFirst
     assign SubWordIn_D[32*i +: 32] = ExpKey_DP[4*i+3];
 
-    assign Rcon_D[32*i+31 -: 8] = SubWordOut_D[32*i+23 -: 8] ^ RCON[i];
+    assign Rcon_D[32*i+31 -: 8] = SubWordOut_D[32*i+23 -: 8] ^ rcon(i);
     assign Rcon_D[32*i+23 -: 8] = SubWordOut_D[32*i+15 -: 8];
     assign Rcon_D[32*i+15 -: 8] = SubWordOut_D[32*i+7  -: 8];
     assign Rcon_D[32*i+7  -: 8] = SubWordOut_D[32*i+31 -: 8];
